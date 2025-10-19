@@ -35,16 +35,4 @@ class MemberRepository:
     def delete_member(member):
         member.delete()
     
-    #####################################
-    @staticmethod
-    def get_members_with_borrowed_books():
-        return Member.objects.select_related('user').prefetch_related(
-            'borrowedbook_set__book__author'
-        )
     
-    @staticmethod
-    def get_member_with_stats(member_id):
-        return Member.objects.annotate(
-            total_borrowed=Count('borrowedbook'),
-            active_borrows=Count('borrowedbook', filter=Q(borrowedbook__is_returned=False))
-        ).get(id=member_id)
