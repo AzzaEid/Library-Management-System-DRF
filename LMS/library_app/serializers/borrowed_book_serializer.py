@@ -9,14 +9,10 @@ class BorrowedBookSerializer(serializers.ModelSerializer):
     member = MemberSerializer(read_only=True)
     is_overdue = serializers.BooleanField(read_only=True)
     is_returned = serializers.BooleanField(read_only=True)
-    available_copies = serializers.SerializerMethodField()
-
-    def get_available_copies(obj):
-        return obj.total_copies - obj.borrowed_copies
 
     class Meta:
         model = BorrowedBook
-        fields = ['id', 'book', 'member', 'borrowed_date', 'due_date', 'returned_date', 'is_returned', 'late_fee', 'is_overdue', 'available_copies']
+        fields = ['id', 'book', 'member', 'borrowed_date', 'due_date', 'returned_date', 'is_returned', 'late_fee', 'is_overdue']
 
 class BorrowedBookCreateSerializer(serializers.ModelSerializer):
     

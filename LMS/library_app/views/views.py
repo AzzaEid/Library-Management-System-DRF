@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from django.db import transaction
+from rest_framework.exceptions import NotFound
 
 from library_app.models.borrowedBook import BorrowedBook
 from library_app.repository import BorrowedBookRepository, MemberRepository, BookRepository, AuthorRepository
@@ -41,7 +42,7 @@ class MemberViewSet(viewsets.ModelViewSet):
     queryset = MemberRepository.get_all_members()
     serializer_class = MemberSerializer
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], url_path='me/borrowed-books')
+    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated], url_path='me/borrowed-books')
     def get_member_borrowed_books(self, request):
         member = request.user.member
         
@@ -51,7 +52,7 @@ class MemberViewSet(viewsets.ModelViewSet):
         total_late_fees = sum([borrowed_book.late_fee for borrowed_book in borrowed_books if borrowed_book.late_fee])
         return Response({'borrowed_books': serializer.data, 'total_late_fees': total_late_fees}, status=status.HTTP_200_OK)
     
-    @action(detail=False, methods=['get'], permission_classes=[IsAdminUser], url_path='borrowed-books')
+    @action(detail=False, methods=['GET'], permission_classes=[IsAdminUser], url_path='borrowed-books')
     def get_borrowed_books(self, request):
         username_filter = request.query_params.get('username', None)
         order_by = request.query_params.get('order_by', 'borrowed_date')
@@ -59,7 +60,8 @@ class MemberViewSet(viewsets.ModelViewSet):
         borrowed_books = BorrowedBookRepository.get_with_filters(username=username_filter, order_by=order_by)
         serializer = BorrowedBookSerializer(borrowed_books, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-        
+    
+
 
 class BorrowedBookViewSet(viewsets.ModelViewSet):
     queryset = BorrowedBookRepository.get_all_borrowed()
@@ -75,12 +77,13 @@ class BorrowedBookViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        book = serializer.validated_data.get('book')
-        member = serializer.validated_data.get('member')
+        book = BookRepository.get_book_by_id(serializer.validated_data.get('book').id)
+        member = MemberRepository.get_member_by_id(serializer.validated_data.get('member').id)
         borrow_period_days = serializer.validated_data.get('borrow_period_days', 14)
         
         if BookRepository.is_available(book.id) is False:
             raise ValidationError({'book': 'No available copies for this book.'})
+
 
         with transaction.atomic():
             BookRepository.increase_borrowed_copies(book)
@@ -95,13 +98,13 @@ class BorrowedBookViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         raise ValidationError("Updating a borrowed book is not allowed.")
     
-    @action(detail=False, methods=['get'], permission_classes=[IsAdminUser], url_path='overdue')
+    @action(detail=False, methods=['GET'], permission_classes=[IsAdminUser], url_path='overdue')
     def get_overdue_books(self, request):
         overdue_books = BorrowedBookRepository.get_overdue()
         serializer = BorrowedBookSerializer(overdue_books, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    @action(detail=False, methods=['get'], permission_classes=[IsAdminUser], url_path='not-returned')
+    @action(detail=False, methods=['GET'], permission_classes=[IsAdminUser], url_path='not-returned')
     def get_not_returned_books(self, request):
         not_returned_books = BorrowedBookRepository.get_not_returned()
         serializer = BorrowedBookSerializer(not_returned_books, many=True)
@@ -109,17 +112,17 @@ class BorrowedBookViewSet(viewsets.ModelViewSet):
 
 class ReturnBookView(APIView):
     permission_classes = [IsAdminUser]
-    #authentication_classes = [TokenAuthentication]
+    authentication_classes = [TokenAuthentication]
 
     def post(self, request, pk):       
 
         try:
             borrowed_book = BorrowedBookRepository.get_borrowed_book(pk)
         except BorrowedBook.DoesNotExist:
-            raise ValidationError("Borrowed book record not found.")
+            raise NotFound("Borrowed book record not found.")
         
         if borrowed_book.is_returned:
-            raise ValidationError("This book has already been returned.")
+            return Response({"massege": "This book has already been returned."}, status=status.HTTP_400_BAD_REQUEST)
         with transaction.atomic():
             borrowed_book = BorrowedBookRepository.return_book(borrowed_book)
             BookRepository.decrease_borrowed_copies(borrowed_book.book)

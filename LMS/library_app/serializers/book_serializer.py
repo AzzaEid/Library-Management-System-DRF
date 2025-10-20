@@ -4,11 +4,12 @@ from library_app.models.book import Book
 
 class BookSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField() # <== just the author's name
-    available_copies = serializers.IntegerField(read_only=True)
 
     author_id = serializers.PrimaryKeyRelatedField(
         queryset=Author.objects.all(), source='author', write_only=True
     )    
+    borrowed_copies =serializers.IntegerField(read_only = True)
+    
     class Meta:
         model = Book
-        fields = ['id', 'title', 'author_id', 'author', 'isbn', 'available_copies', 'total_copies']
+        fields = ['id', 'title', 'author_id', 'author', 'isbn', 'total_copies', 'borrowed_copies']

@@ -1,7 +1,78 @@
-POST http://127.0.0.1:8000/login/
+POST http://127.0.0.1:8001/login/
 Content-Type: application/json
 
 {
     "username": "member2",
     "password": "test@1234"
 }
+
+###
+GET http://127.0.0.1:8001/library/members/me/borrowed-books/
+Content-Type: application/json
+Authorization: Token 9660319cd9c2f4529102bd4b9c044ee8f2ff4ad7
+
+###
+POST http://127.0.0.1:8001/login/
+Content-Type: application/json
+
+{
+    "username": "staff",
+    "password": "2test#21"
+}
+###
+GET http://127.0.0.1:8001/library/members/borrowed-books/?username=member2
+Content-Type: application/json
+Authorization: Token f9c7f2be9b619c5d74a1e1ff08dce1c58b2a0dc3
+
+###
+
+GET http://127.0.0.1:8001/library/authors/
+
+###
+POST http://127.0.0.1:8001/library/authors/
+Content-Type: application/json
+Authorization: Token f9c7f2be9b619c5d74a1e1ff08dce1c58b2a0dc3
+
+{
+    "name": "New Author2"
+}
+
+###
+GET http://127.0.0.1:8001/library/books/
+
+###
+POST http://127.0.0.1:8001/library/books/
+Content-Type: application/json
+Authorization: Token f9c7f2be9b619c5d74a1e1ff08dce1c58b2a0dc3
+
+{
+    "title": "New Book 3",
+    "author_id": 6,
+    "isbn": "444444j994",
+    "total_copies": 5
+}
+###
+GET http://127.0.0.1:8001/library/members/
+Authorization: Token f9c7f2be9b619c5d74a1e1ff08dce1c58b2a0dc3
+
+###
+POST http://127.0.0.1:8001/library/borrowed-books/
+Content-Type: application/json
+Authorization: Token f9c7f2be9b619c5d74a1e1ff08dce1c58b2a0dc3
+
+{
+    "book": 2,
+    "member": 2,
+    "borrow_period_days": 7
+}
+###
+GET http://127.0.0.1:8001/library/borrowed-books/not-returned/
+Authorization: Token f9c7f2be9b619c5d74a1e1ff08dce1c58b2a0dc3
+###
+GET http://127.0.0.1:8001/library/borrowed-books/overdue/
+Authorization: Token f9c7f2be9b619c5d74a1e1ff08dce1c58b2a0dc3
+
+###
+POST http://127.0.0.1:8001/library/return-books/12/
+Authorization: Token f9c7f2be9b619c5d74a1e1ff08dce1c58b2a0dc3
+
