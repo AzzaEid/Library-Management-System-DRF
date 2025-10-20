@@ -19,7 +19,8 @@ class Command(BaseCommand):
             counter += 1
             bb.save()
             
-            bb.book.borrowed_copies = 0
+
+            bb.book.borrowed_copies -= 1
             bb.book.save()
             self.stdout.write(f'  - Returned: {bb.book.title} Member: {bb.member.user.username}  ')
 
