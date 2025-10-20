@@ -1,3 +1,4 @@
+from time import timezone
 from django.forms import ValidationError
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -75,7 +76,18 @@ class BorrowedBookViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         raise ValidationError("Updating a borrowed book is not allowed.")
     
+class ReturnBookView(APIView):
+    permission_classes = [IsAdminUser]
 
+    def post(self, request, pk):
+        borrowed_book = BorrowedBookRepository.get_borrowed_book(pk)
 
-    
-   
+        if borrowed_book.is_returned:
+            raise ValidationError("This book has already been returned.")
+
+        borrowed_book = BorrowedBookRepository.return_book(borrowed_book)
+
+        BookRepository.decrease_borrowed_copies(borrowed_book.book)
+
+        serializer = BorrowedBookSerializer(borrowed_book)
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -15,15 +15,12 @@ class BorrowedBookSerializer(serializers.ModelSerializer):
         fields = ['id', 'book', 'member', 'borrowed_date', 'due_date', 'returned_date', 'is_returned', 'late_fee', 'is_overdue']
 
 class BorrowedBookCreateSerializer(serializers.ModelSerializer):
-    book_id = serializers.PrimaryKeyRelatedField(
-        queryset=Book.objects.all(), source='book')
-    member_id = serializers.PrimaryKeyRelatedField(
-        queryset=Member.objects.all(), source='member')
+    
     borrow_period_days = serializers.IntegerField(write_only=True, default=14)
 
     class Meta:
         model = BorrowedBook
-        fields = ['book_id', 'member_id', 'borrow_period_days']
+        fields = ['book', 'member', 'borrow_period_days']
 
     # def create(self, validated_data):
     #     book = validated_data['book']

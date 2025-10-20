@@ -17,6 +17,18 @@ class BorrowedBookRepository:
     @staticmethod
     def get_borrowed_book(borrowed_id):
         return BorrowedBook.objects.select_related('book__author', 'member__user').get(id=borrowed_id)
+    @staticmethod
+    def return_book(borrowed_book):
+        return_date = timezone.now().date()
+        borrowed_book.returned_date = return_date
+        borrowed_book.is_returned = True
+
+        if return_date > borrowed_book.due_date:
+            days_late = (return_date - borrowed_book.due_date).days
+            borrowed_book.late_fee = days_late * 1.0
+
+        borrowed_book.save()
+        return borrowed_book
     
     @staticmethod
     def get_all_borrowed():
