@@ -61,3 +61,7 @@ class BorrowedBookRepository:
         if username:
             qs = qs.filter(member__user__username=username)
         return qs.order_by(order_by)
+    
+    @staticmethod
+    def get_borrowed_by_member(member):
+        return BorrowedBook.objects.select_related('book__author', 'member__user').filter(member_id=member)

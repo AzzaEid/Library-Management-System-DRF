@@ -41,6 +41,25 @@ class MemberViewSet(viewsets.ModelViewSet):
     queryset = MemberRepository.get_all_members()
     serializer_class = MemberSerializer
 
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated], url_path='borrowed-books')
+    def get_borrowed_books(self, request, pk=None):
+        user = request.user
+        if user.is_staff:
+            member = MemberRepository.get_member_by_id(pk)
+            if member is None:
+                return Response({'detail': 'Member not found.'}, status=status.HTTP_404_NOT_FOUND)
+        elif user.member.id == pk:
+            member = user.member
+        else:
+            return Response({'detail': 'Not authorized to view this member\'s borrowed books.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        borrowed_books = BorrowedBookRepository.get_borrowed_by_member(member)
+        serializer = BorrowedBookSerializer(borrowed_books, many=True)
+
+        total_late_fees = sum([borrowed_book.late_fee for borrowed_book in borrowed_books if borrowed_book.late_fee])
+        return Response({'borrowed_books': serializer.data, 'total_late_fees': total_late_fees}, status=status.HTTP_200_OK)
+
+
 class BorrowedBookViewSet(viewsets.ModelViewSet):
     queryset = BorrowedBookRepository.get_all_borrowed()
     serializer_class = BorrowedBookSerializer
