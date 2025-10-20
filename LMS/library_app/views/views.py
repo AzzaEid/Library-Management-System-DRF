@@ -12,7 +12,6 @@ from library_app.repository import BorrowedBookRepository, MemberRepository, Boo
 from library_app.models import Author, Book, Member
 from library_app.serializers import AuthorSerializer, BookSerializer, MemberSerializer, BorrowedBookSerializer, BorrowedBookCreateSerializer
 
-# get post put delete authors, books, members
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
@@ -41,24 +40,25 @@ class MemberViewSet(viewsets.ModelViewSet):
     queryset = MemberRepository.get_all_members()
     serializer_class = MemberSerializer
 
-    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated], url_path='borrowed-books')
-    def get_borrowed_books(self, request, pk=None):
-        user = request.user
-        if user.is_staff:
-            member = MemberRepository.get_member_by_id(pk)
-            if member is None:
-                return Response({'detail': 'Member not found.'}, status=status.HTTP_404_NOT_FOUND)
-        elif user.member.id == pk:
-            member = user.member
-        else:
-            return Response({'detail': 'Not authorized to view this member\'s borrowed books.'}, status=status.HTTP_403_FORBIDDEN)
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], url_path='me/borrowed-books')
+    def get_borrowed_books(self, request):
+        member = request.user.member
         
         borrowed_books = BorrowedBookRepository.get_borrowed_by_member(member)
         serializer = BorrowedBookSerializer(borrowed_books, many=True)
 
         total_late_fees = sum([borrowed_book.late_fee for borrowed_book in borrowed_books if borrowed_book.late_fee])
         return Response({'borrowed_books': serializer.data, 'total_late_fees': total_late_fees}, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'], permission_classes=[IsAdminUser], url_path='borrowed-books')
+    def get_borrowed_books(self, request):
+        username_filter = request.query_params.get('username', None)
+        order_by = request.query_params.get('order_by', 'borrowed_date')
 
+        borrowed_books = BorrowedBookRepository.get_with_filters(username=username_filter, order_by=order_by)
+        serializer = BorrowedBookSerializer(borrowed_books, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
 
 class BorrowedBookViewSet(viewsets.ModelViewSet):
     queryset = BorrowedBookRepository.get_all_borrowed()
@@ -95,6 +95,12 @@ class BorrowedBookViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         raise ValidationError("Updating a borrowed book is not allowed.")
     
+    @action(detail=False, methods=['get'], permission_classes=[IsAdminUser], url_path='overdue')
+    def get_overdue_books(self, request):
+        overdue_books = BorrowedBookRepository.get_overdue()
+        serializer = BorrowedBookSerializer(overdue_books, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 class ReturnBookView(APIView):
     permission_classes = [IsAdminUser]
 

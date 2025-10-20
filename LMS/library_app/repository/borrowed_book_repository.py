@@ -7,6 +7,10 @@ from django.db.models import F
 
 class BorrowedBookRepository:
     @staticmethod
+    def get_all_borrowed():
+        return BorrowedBook.objects.select_related('book__author', 'member__user').all()
+    
+    @staticmethod
     def create_borrow(book, member, period_days):
         return BorrowedBook.objects.create(
             book=book,
@@ -17,6 +21,7 @@ class BorrowedBookRepository:
     @staticmethod
     def get_borrowed_book(borrowed_id):
         return BorrowedBook.objects.select_related('book__author', 'member__user').get(id=borrowed_id)
+    
     @staticmethod
     def return_book(borrowed_book):
         return_date = timezone.now().date()
@@ -31,36 +36,19 @@ class BorrowedBookRepository:
         return borrowed_book
     
     @staticmethod
-    def get_all_borrowed():
-        return BorrowedBook.objects.select_related('book__author', 'member__user').all()
-    
-    @staticmethod
     def get_overdue():
         today = timezone.now().date()
         return BorrowedBook.objects.filter(
             is_returned=False,
             due_date__lt=today
         ).select_related('book__author', 'member__user')
-    
-    @staticmethod
-    def count_active_borrows(member_id):
-        return BorrowedBook.objects.filter(member_id=member_id, is_returned=False).count()
-    
-    @staticmethod
-    def has_overdue(member_id):
-        today = timezone.now().date()
-        return BorrowedBook.objects.filter(
-            member_id=member_id,
-            is_returned=False,
-            due_date__lt=today
-        ).exists()
-    
+
     @staticmethod
     def get_with_filters(username=None, order_by='borrowed_date'):
-        qs = BorrowedBook.objects.select_related('book__author', 'member__user')
+        all = BorrowedBook.objects.select_related('book__author', 'member__user')
         if username:
-            qs = qs.filter(member__user__username=username)
-        return qs.order_by(order_by)
+            all = all.filter(member__user__username=username)
+        return all.order_by(order_by)
     
     @staticmethod
     def get_borrowed_by_member(member):
