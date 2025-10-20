@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from LMS.library_app.models.author import Author
+from library_app.models.author import Author
 
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:

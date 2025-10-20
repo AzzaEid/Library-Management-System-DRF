@@ -1,7 +1,6 @@
 from rest_framework import serializers
-from LMS.library_app.models.borrowedBook import BorrowedBook
-from LMS.library_app.serializers.book_serializer import BookSerializer
-from LMS.library_app.serializers.member_serializer import MemberSerializer
+from library_app.models import BorrowedBook
+from library_app.serializers import BookSerializer, MemberSerializer
 
 class BorrowedBookSerializer(serializers.ModelSerializer):
     book = BookSerializer(read_only=True)
