@@ -2,6 +2,7 @@ from django.db.models import Q, F
 from django.utils import timezone
 from datetime import timedelta
 from ..models import BorrowedBook
+from django.db.models import F
 
 
 class BorrowedBookRepository:
@@ -10,7 +11,7 @@ class BorrowedBookRepository:
         return BorrowedBook.objects.create(
             book=book,
             member=member,
-            borrow_period_days=period_days
+            due_date=timezone.now().date() + timedelta(days=period_days)
         )
     
     @staticmethod
