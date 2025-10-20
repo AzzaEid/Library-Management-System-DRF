@@ -4,19 +4,14 @@ from django.db.models import F
 
 
 class BookRepository:
+    @staticmethod
+    def get_all_books():
+        return Book.objects.select_related('author').all()
 
     @staticmethod
     def get_book_by_id(book_id):
         return Book.objects.select_related('author').get(id=book_id)
-    
-    @staticmethod
-    def get_books_by_author(author_id):
-        return Book.objects.filter(author_id=author_id)
-    
-    @staticmethod
-    def get_available_books():
-        return Book.objects.filter(borrowed_copies__lt=F('total_copies')).select_related('author')
-    
+
     @staticmethod
     def is_available(book_id):
         return Book.objects.filter(id=book_id, borrowed_copies__lt=F('total_copies')).exists()

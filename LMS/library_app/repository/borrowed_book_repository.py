@@ -12,12 +12,14 @@ class BorrowedBookRepository:
     
     @staticmethod
     def create_borrow(book, member, period_days):
-        return BorrowedBook.objects.create(
-            book=book,
-            member=member,
-            due_date=timezone.now().date() + timedelta(days=period_days)
+        borrowed_book = BorrowedBook.objects.create(
+        book=book,
+        member=member,
+        due_date=timezone.now().date() + timedelta(days=period_days),
+        borrowed_date=timezone.now().date()
         )
-    
+        return borrowed_book
+
     @staticmethod
     def get_borrowed_book(borrowed_id):
         return BorrowedBook.objects.select_related('book__author', 'member__user').get(id=borrowed_id)
@@ -44,6 +46,10 @@ class BorrowedBookRepository:
         ).select_related('book__author', 'member__user')
 
     @staticmethod
+    def get_not_returned():
+        return BorrowedBook.objects.filter(is_returned=False).select_related('book__author', 'member__user')
+
+    @staticmethod
     def get_with_filters(username=None, order_by='borrowed_date'):
         all = BorrowedBook.objects.select_related('book__author', 'member__user')
         if username:
@@ -52,4 +58,4 @@ class BorrowedBookRepository:
     
     @staticmethod
     def get_borrowed_by_member(member):
-        return BorrowedBook.objects.select_related('book__author', 'member__user').filter(member_id=member)
+        return BorrowedBook.objects.select_related('book__author', 'member__user').filter(member_id=member.id)
