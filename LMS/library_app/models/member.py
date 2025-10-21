@@ -6,7 +6,5 @@ class Member(models.Model):
     phone_number = models.CharField(max_length=20)
     joined_date = models.DateField(auto_now_add=True)
 
-    # to be added: is_active, membership_type, etc.
-
     def __str__(self):
         return self.user.username

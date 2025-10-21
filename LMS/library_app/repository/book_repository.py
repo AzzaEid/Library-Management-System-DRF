@@ -14,17 +14,16 @@ class BookRepository:
 
     @staticmethod
     def is_available(book_id):
-        return Book.objects.filter(id=book_id, borrowed_copies__lt=F('total_copies')).exists()
+        book = Book.objects.get(id=book_id)
+        return book.available_copies > 0
+    @staticmethod
+    def increase_borrowed_copies(book):
+        Book.objects.filter(pk=book.pk).update(
+            borrowed_copies=F('borrowed_copies') + 1
+        )
 
     @staticmethod
     def decrease_borrowed_copies(book):
-        book.borrowed_copies -= 1
-        book.save()
-        return book
-    
-    @staticmethod
-    def increase_borrowed_copies(book):
-        book.borrowed_copies += 1
-        book.save()
-        return book
-    
+        Book.objects.filter(pk=book.pk).update(
+            borrowed_copies=F('borrowed_copies') - 1
+        )

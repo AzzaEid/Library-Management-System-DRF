@@ -7,7 +7,7 @@ Content-Type: application/json
 }
 
 ###
-GET http://127.0.0.1:8001/library/members/me/borrowed-books/
+GET http://127.0.0.1:8000/library/members/me/borrowed-books/
 Content-Type: application/json
 Authorization: Token 9660319cd9c2f4529102bd4b9c044ee8f2ff4ad7
 
@@ -38,10 +38,10 @@ Authorization: Token f9c7f2be9b619c5d74a1e1ff08dce1c58b2a0dc3
 }
 
 ###
-GET http://127.0.0.1:8001/library/books/
+GET http://127.0.0.1:8000/api/v1/library/books/
 
 ###
-POST http://127.0.0.1:8001/library/books/
+POST http://127.0.0.1:8001/api/v1/library/books/
 Content-Type: application/json
 Authorization: Token f9c7f2be9b619c5d74a1e1ff08dce1c58b2a0dc3
 

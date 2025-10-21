@@ -7,20 +7,16 @@ class Command(BaseCommand):
     help = 'Set all borrowed books as returned'
     
     def handle(self, *args, **kwargs):
-        borrowed_books_row = BorrowedBook.objects.all()
-
+        borrowed_books = BorrowedBook.objects.filter(returned_date__isnull=True)
+        count = borrowed_books.count()
+        
+        if count == 0:
+            self.stdout.write(self.style.WARNING('No borrowed books to return'))
+            return
+        
         now = timezone.now().date()
-        counter = 0
-        for bb in borrowed_books_row:
-            if bb.is_returned:
-                continue 
-            with transaction.atomic():
-                bb.is_returned = True
-                bb.returned_date = now
-                counter += 1
-                bb.save()
-                bb.book.borrowed_copies -= 1
-                bb.book.save()
-                self.stdout.write(f'  - Returned: {bb.book.title} Member: {bb.member.user.username}  ')
+        
+        with transaction.atomic():
+            borrowed_books.update(returned_date=now)
 
-        self.stdout.write(self.style.SUCCESS(f'\nSuccessfully returned {counter} books'))
+        self.stdout.write(self.style.SUCCESS(f'Successfully returned {count} books'))

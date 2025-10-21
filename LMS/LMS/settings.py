@@ -98,6 +98,12 @@ DATABASES = {
     }
 }
 
+LIBRARY_SETTINGS = {
+    'DAILY_LATE_FEE': 1.0,
+    'MAX_BORROW_PERIOD': 30,
+    'DEFAULT_BORROW_PERIOD': 14,
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

@@ -7,6 +7,16 @@ class Book(models.Model):
     isbn = models.CharField(max_length=20, unique=True)
     total_copies = models.PositiveIntegerField(default=1)
     borrowed_copies = models.PositiveIntegerField(default=0)
+    
+    # @property
+    # def borrowed_copies(self): <<< N+1 PROBLEM
+    #     return self.borrowed_books.filter(is_returned=False).count()
+    
+    @property
+    def available_copies(self):
+        return self.total_copies - self.borrowed_copies
 
     def __str__(self):
         return self.title
+
+   

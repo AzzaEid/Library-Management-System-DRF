@@ -7,9 +7,10 @@ class BookSerializer(serializers.ModelSerializer):
 
     author_id = serializers.PrimaryKeyRelatedField(
         queryset=Author.objects.all(), source='author', write_only=True
-    )    
-    borrowed_copies =serializers.IntegerField(read_only = True)
-    
+    )  
+    borrowed_copies = serializers.IntegerField(read_only=True)
+    available_copies = serializers.IntegerField(read_only=True)
+        
     class Meta:
         model = Book
-        fields = ['id', 'title', 'author_id', 'author', 'isbn', 'total_copies', 'borrowed_copies']
+        fields = ['id', 'title', 'author_id', 'author', 'isbn', 'total_copies', 'borrowed_copies', 'available_copies']

@@ -1,4 +1,3 @@
-from datetime import timezone
 from django.forms import ValidationError
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -11,6 +10,7 @@ from rest_framework.exceptions import NotFound
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
+from library_app.models.member import Member
 from library_app.models.borrowedBook import BorrowedBook
 from library_app.repository import BorrowedBookRepository, MemberRepository, BookRepository, AuthorRepository
 from library_app.serializers import AuthorSerializer, BookSerializer, MemberSerializer, BorrowedBookSerializer, BorrowedBookCreateSerializer
@@ -45,15 +45,22 @@ class MemberViewSet(viewsets.ModelViewSet):
     queryset = MemberRepository.get_all_members()
     serializer_class = MemberSerializer
     filterset_class = MemberFilter
+    permission_classes = [IsAdminUser]
 
-
-    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated], url_path='me/borrowed-books')
+    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated], url_path='borrowed-books')
     def get_member_borrowed_books(self, request):
         try:
             member = request.user.member
-        except:
-            return Response("This endpoint for mwmbers only", status=status.HTTP_400_BAD_REQUEST)
-        
+        except Member.DoesNotExist:
+            return Response(
+                {"error": "You must be a registered member to access this endpoint"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        except AttributeError:  # user.member doesn't exist
+            return Response(
+                {"error": "Member profile not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
         
         borrowed_books = BorrowedBookRepository.get_borrowed_by_member(member)
         serializer = BorrowedBookSerializer(borrowed_books, many=True)
@@ -143,7 +150,7 @@ class ReturnBookView(APIView):
             raise NotFound("Borrowed book record not found.")
         
         if borrowed_book.is_returned:
-            return Response({"massege": "This book has already been returned."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"massage": "This book has already been returned."}, status=status.HTTP_400_BAD_REQUEST)
         with transaction.atomic():
             borrowed_book = BorrowedBookRepository.return_book(borrowed_book)
             BookRepository.decrease_borrowed_copies(borrowed_book.book)

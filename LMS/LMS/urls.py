@@ -21,7 +21,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 from .swagger_view import schema_view
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('library/', include('library_app.urls')),
+    path('api/v1/library/', include('library_app.urls')),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('login/', obtain_auth_token),  
+    path('api/v1/login/', obtain_auth_token),  
 ]
