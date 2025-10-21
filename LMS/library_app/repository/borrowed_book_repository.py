@@ -50,10 +50,8 @@ class BorrowedBookRepository:
         return BorrowedBook.objects.filter(is_returned=False).select_related('book__author', 'member__user')
 
     @staticmethod
-    def get_with_filters(username=None, order_by='borrowed_date'):
-        all = BorrowedBook.objects.select_related( 'member__user')
-        if username:
-            all = all.filter(member__user__username=username)
+    def get_with_filters(member_id, order_by='borrowed_date'):
+        all = BorrowedBook.objects.select_related( 'member__user').filter(member_id=member_id)
         return all.order_by(order_by)
     
     @staticmethod

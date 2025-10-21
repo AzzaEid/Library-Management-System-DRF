@@ -8,10 +8,13 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from django.db import transaction
 from rest_framework.exceptions import NotFound
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 
 from library_app.models.borrowedBook import BorrowedBook
 from library_app.repository import BorrowedBookRepository, MemberRepository, BookRepository, AuthorRepository
 from library_app.serializers import AuthorSerializer, BookSerializer, MemberSerializer, BorrowedBookSerializer, BorrowedBookCreateSerializer
+from library_app.filters import BorrowedBookFilter, MemberFilter
 
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = AuthorRepository.get_all_authors()
@@ -41,10 +44,16 @@ class BookViewSet(viewsets.ModelViewSet):
 class MemberViewSet(viewsets.ModelViewSet):
     queryset = MemberRepository.get_all_members()
     serializer_class = MemberSerializer
+    filterset_class = MemberFilter
+
 
     @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated], url_path='me/borrowed-books')
     def get_member_borrowed_books(self, request):
-        member = request.user.member
+        try:
+            member = request.user.member
+        except:
+            return Response("This endpoint for mwmbers only", status=status.HTTP_400_BAD_REQUEST)
+        
         
         borrowed_books = BorrowedBookRepository.get_borrowed_by_member(member)
         serializer = BorrowedBookSerializer(borrowed_books, many=True)
@@ -52,26 +61,38 @@ class MemberViewSet(viewsets.ModelViewSet):
         total_late_fees = sum([borrowed_book.late_fee for borrowed_book in borrowed_books if borrowed_book.late_fee])
         return Response({'borrowed_books': serializer.data, 'total_late_fees': total_late_fees}, status=status.HTTP_200_OK)
     
-    @action(detail=False, methods=['GET'], permission_classes=[IsAdminUser], url_path='borrowed-books')
-    def get_borrowed_books(self, request):
-        username_filter = request.query_params.get('username', None)
-        order_by = request.query_params.get('order_by', 'borrowed_date')
-
-        borrowed_books = BorrowedBookRepository.get_with_filters(username=username_filter, order_by=order_by)
-        serializer = BorrowedBookSerializer(borrowed_books, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    # @action(detail=True, methods=['GET'], permission_classes=[IsAdminUser], url_path='borrowed-books')
+    # def get_borrowed_books(self, request, pk=None):
+    #     order_by = request.query_params.get('order_by', 'borrowed_date')
+    #     try:
+    #         member = MemberRepository.get_member_by_id(pk)
+    #     except:
+    #         return Response({"massege": "member ID not found"}, status=status.HTTP_400_BAD_REQUEST)
+    #     borrowed_books = BorrowedBookRepository.get_with_filters(member_id=pk, order_by=order_by)
+    #     serializer = BorrowedBookSerializer(borrowed_books, many=True)
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
     
-
 
 class BorrowedBookViewSet(viewsets.ModelViewSet):
     queryset = BorrowedBookRepository.get_all_borrowed()
     serializer_class = BorrowedBookSerializer
     permission_classes = [IsAdminUser]
+    filterset_class = BorrowedBookFilter
+    filter_backends = [DjangoFilterBackend,
+                       filters.OrderingFilter]
+    ordering_fields = ['borrowed_date', 'due_date']
 
     def get_serializer_class(self):
         if self.action == 'create':
             return BorrowedBookCreateSerializer
         return BorrowedBookSerializer
+    
+    def get_queryset(self):
+        member_id = self.kwargs.get('member_pk')
+        qs = BorrowedBook.objects.all()
+        if member_id:
+            qs = qs.filter(member_id=member_id)
+        return qs
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -105,7 +126,7 @@ class BorrowedBookViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['GET'], permission_classes=[IsAdminUser], url_path='not-returned')
-    def get_not_returned_books(self, request):
+    def get_unreturned_books(self, request):
         not_returned_books = BorrowedBookRepository.get_not_returned()
         serializer = BorrowedBookSerializer(not_returned_books, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
