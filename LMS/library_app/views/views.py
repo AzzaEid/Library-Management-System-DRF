@@ -9,7 +9,7 @@ from django.db import transaction
 from rest_framework.exceptions import NotFound
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
-
+from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from library_app.models.member import Member
 from library_app.models.borrowedBook import BorrowedBook
 from library_app.repository import BorrowedBookRepository, MemberRepository, BookRepository, AuthorRepository
@@ -32,7 +32,12 @@ class AuthorViewSet(viewsets.ModelViewSet):
 class BookViewSet(viewsets.ModelViewSet):
     queryset = BookRepository.get_all_books()
     serializer_class = BookSerializer
-
+    # pagination_class = PageNumberPagination
+    # pagination_class.page_size = 15 # < queryset must be ordered
+    # pagination_class.page_size_query_param = 'size'
+    # pagination_class.max_page_size = 100
+    pagination_class = PageNumberPagination
+    authentication_classes = [TokenAuthentication]
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             self.permission_classes = [AllowAny]
