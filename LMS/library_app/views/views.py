@@ -109,16 +109,15 @@ class BorrowedBookViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        book = BookRepository.get_book_by_id(serializer.validated_data.get('book').id)
-        member = MemberRepository.get_member_by_id(serializer.validated_data.get('member').id)
-        borrow_period_days = serializer.validated_data.get('borrow_period_days', 14)
         
-        if BookRepository.is_available(book.id) is False:
-            raise ValidationError({'book': 'No available copies for this book.'})
-
-
         with transaction.atomic():
+            book = BookRepository.get_book_for_update(serializer.validated_data.get('book').id)
+            member = MemberRepository.get_member_by_id(serializer.validated_data.get('member').id)
+            borrow_period_days = serializer.validated_data.get('borrow_period_days', 14)
+            
+            if BookRepository.is_available(book.id) is False:
+                raise ValidationError({'book': 'No available copies for this book.'})
+        
             BookRepository.increase_borrowed_copies(book)
             borrowed_book = BorrowedBookRepository.create_borrow(book, member, borrow_period_days)
         
@@ -155,7 +154,7 @@ class ReturnBookView(APIView):
             raise NotFound("Borrowed book record not found.")
         
         if borrowed_book.is_returned:
-            return Response({"massage": "This book has already been returned."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "This book has already been returned."}, status=status.HTTP_400_BAD_REQUEST)
         with transaction.atomic():
             borrowed_book = BorrowedBookRepository.return_book(borrowed_book)
             BookRepository.decrease_borrowed_copies(borrowed_book.book)

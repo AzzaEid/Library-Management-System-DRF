@@ -13,6 +13,10 @@ class BookRepository:
         return Book.objects.select_related('author').get(id=book_id)
 
     @staticmethod
+    def get_book_for_update(book_id):
+        return Book.objects.select_for_update().select_related('author').get(id=book_id)
+    
+    @staticmethod
     def is_available(book_id):
         book = Book.objects.get(id=book_id)
         return book.available_copies > 0
