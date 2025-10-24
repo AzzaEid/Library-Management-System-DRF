@@ -20,5 +20,15 @@ class MemberRepository:
     def create_member(user, data):
         return Member.objects.create(user=user, **data)
     
+    @staticmethod
+    def update_member(member, data):
+        for key, value in data.items():
+            setattr(member, key, value)
+        member.save()
+        return member
+    
+    @staticmethod
+    def delete_member(member):
+        member.delete()
  
     

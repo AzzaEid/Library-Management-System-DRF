@@ -12,10 +12,10 @@ class MemberSerializer(serializers.ModelSerializer):
         model = Member
         fields = ['id', 'username', 'password', 'user_name', 'joined_date', 'phone_number']
 
-    def create(self, validated_data):
-        username = validated_data['username']
-        password = validated_data['password']
-        phone_number = validated_data.get('phone_number', '')
+    # def create(self, validated_data):
+    #     username = validated_data['username']
+    #     password = validated_data['password']
+    #     phone_number = validated_data.get('phone_number', '')
 
-        user = User.objects.create_user(username=username, password=password)
-        return Member.objects.create(user=user, phone_number=phone_number)
+    #     user = User.objects.create_user(username=username, password=password)
+    #     return Member.objects.create(user=user, phone_number=phone_number)

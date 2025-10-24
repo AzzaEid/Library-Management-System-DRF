@@ -22,7 +22,7 @@ class BorrowedBookRepository:
         return borrowed_book
     
     @staticmethod
-    def get_borrowed_book(borrowed_id):
+    def get_by_id(borrowed_id):
         return BorrowedBook.objects.select_related('book__author', 'member__user').get(id=borrowed_id)
     
     @staticmethod

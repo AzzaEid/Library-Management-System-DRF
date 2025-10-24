@@ -1,4 +1,5 @@
 from .author_serializer import AuthorSerializer
 from .book_serializer import BookSerializer
 from .member_serializer import MemberSerializer
-from .borrowed_book_serializer import BorrowedBookSerializer, BorrowedBookCreateSerializer   
+from .borrowed_book_serializer import BorrowedBookSerializer   
+from .dynamic_fields_model_serializer import DynamicFieldsModelSerializer
