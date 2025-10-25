@@ -21,24 +21,30 @@ class MemberAdmin(admin.ModelAdmin):
     def get_username(self, obj):
         return obj.user.username
     get_username.short_description = 'Username'
-
 @admin.register(BorrowedBook)
 class BorrowedBookAdmin(admin.ModelAdmin):
-    list_display = ['id', 'book', 'member', 'borrowed_date', 'due_date', 'is_returned', 'is_overdue', 'late_fee']
+    list_display = ['id', 'book', 'member', 'borrowed_date', 'due_date', 
+                    'get_is_returned', 'get_is_overdue', 'late_fee'] 
     search_fields = ['book__title', 'member__user__username']
+    list_filter = ['borrowed_date', 'due_date', 'returned_date']
 
     def get_readonly_fields(self, request, obj=None):
-        if obj:  
-            return ['borrowed_date', 'is_returned', 'is_overdue', 'late_fee']
-        return [] 
+        if obj:
+            return ['borrowed_date', 'late_fee']
+        return []
     
     def get_fields(self, request, obj=None):
-        if obj:  
-            return ['book', 'member', 'borrowed_date', 'due_date', 'is_returned', 'is_overdue', 'late_fee']
-        else:  
+        if obj:
+            return ['book', 'member', 'borrowed_date', 'due_date', 'returned_date', 'late_fee']
+        else:
             return ['book', 'member', 'due_date']
     
-    def is_overdue(self, obj):
+    def get_is_returned(self, obj):
+        return obj.is_returned
+    get_is_returned.boolean = True
+    get_is_returned.short_description = 'Returned'
+    
+    def get_is_overdue(self, obj):
         return obj.is_overdue
-    is_overdue.boolean = True
-    is_overdue.short_description = 'Overdue'
+    get_is_overdue.boolean = True
+    get_is_overdue.short_description = 'Overdue'

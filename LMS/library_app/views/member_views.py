@@ -1,11 +1,11 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..components.borrow_management import BorrowManagement
-from ..serializers import BorrowedBookSerializer
+from ..components import BorrowManagement, MemberManagement
+from ..serializers import BorrowedBookSerializer, MemberSerializer
 from ..models import Member
 
 class MemberBorrowedBookViewSet(viewsets.ReadOnlyModelViewSet):
@@ -27,6 +27,7 @@ class MemberBorrowedBookViewSet(viewsets.ReadOnlyModelViewSet):
                 ]
         return super().get_serializer(*args, **kwargs)
     
+    
     @action(detail=False, methods=['get'])
     def active(self, request):
         try:
@@ -38,5 +39,30 @@ class MemberBorrowedBookViewSet(viewsets.ReadOnlyModelViewSet):
             member, 
             include_returned=False
         )
+
         serializer = self.get_serializer(borrowed_books, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class MemberProfileViewSet(mixins.RetrieveModelMixin,
+                           mixins.UpdateModelMixin,
+                           viewsets.GenericViewSet):
+    
+    serializer_class = MemberSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        try:
+            return self.request.user.member
+        except Member.DoesNotExist:
+            raise PermissionDenied("You must be a registered member")
+
+    def update(self, request, *args, **kwargs):
+        member = self.get_object()
+        serializer = self.get_serializer(member, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        updated_member = MemberManagement.update_member(member.id, serializer.validated_data)
+        if not updated_member:
+            return Response({"detail": "Failed to update profile"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(MemberSerializer(updated_member).data, status=status.HTTP_200_OK)

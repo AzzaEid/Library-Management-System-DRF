@@ -10,13 +10,13 @@ class AuthorManagement:
     @staticmethod
     def get_author_by_id(author_id):
         try:
-            AuthorRepository.get_author_by_id(author_id=author_id)
+            return AuthorRepository.get_author_by_id(author_id=author_id)
         except Author.DoesNotExist:
             return None
     
     @staticmethod
     def create_author(data):
-        return AuthorManagement.create_author(**data)
+        return AuthorRepository.create_author(**data)
     
     @staticmethod
     def update_author(author_id, data):
@@ -31,7 +31,7 @@ class AuthorManagement:
         author = AuthorManagement.get_author_by_id(author_id)
         if not author:
             return False
-        AuthorRepository.delete_author(author_id)
+        AuthorRepository.delete_author(author)
         return True
     
     

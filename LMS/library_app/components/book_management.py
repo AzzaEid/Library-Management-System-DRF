@@ -10,7 +10,7 @@ class BookManagement:
     @staticmethod
     def get_book_by_id(book_id):
         try:
-            BookRepository.get_by_id(book_id=book_id)
+            return BookRepository.get_by_id(book_id=book_id)
         except Book.DoesNotExist:
             return None
     
@@ -20,13 +20,16 @@ class BookManagement:
     
     @staticmethod
     def update_book(book_id, data):
-        book = BookRepository.get_by_id(book_id=book_id)
+        book = BookManagement.get_book_by_id(book_id=book_id)
+        if not book:
+            return None
         return BookRepository.update(book, data)
     
     @staticmethod
     def delete_book(book_id):
         book = BookManagement.get_book_by_id(book_id)
-        
+        if not book:
+            return False, "Book not found"
         # Check if book has active borrows
         if book.borrowed_copies > 0:
             return False, "Cannot delete book with active borrows"

@@ -20,4 +20,4 @@ class BorrowedBookSerializer(DynamicFieldsModelSerializer):
     )
     class Meta:
         model = BorrowedBook
-        fields = ['__all__']
+        fields = '__all__'

@@ -23,9 +23,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api/v1/login/', obtain_auth_token), 
-    path('', include('library_app.urls.public_urls')),
+    path('api/v1/library/', include('library_app.urls.public_urls')),
     
-    path('member/', include('library_app.urls.member_urls')),
+    path('api/v1/library/member/', include('library_app.urls.member_urls')),
     
-    path('admin/', include('library_app.urls.admin_urls')), 
+    path('api/v1/library/admin/', include('library_app.urls.admin_urls')), 
 ]

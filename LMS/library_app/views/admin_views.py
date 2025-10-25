@@ -50,17 +50,22 @@ class AdminBorrowedBookViewSet(viewsets.ModelViewSet):
         member_id = serializer.validated_data['member_id']
         borrow_period_days = serializer.validated_data.get('borrow_period_days')
         
-        borrowed_book = BorrowManagement.borrow_book(
+        borrowed_book, error = BorrowManagement.borrow_book(
             book_id=book_id,
             member_id=member_id,
             borrow_period_days=borrow_period_days
         )
+        if error:
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
         output_serializer = self.get_serializer(borrowed_book)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
     
     @action(detail=True, methods=['post'])
     def return_book(self, request, pk=None):
-        borrowed_book = BorrowManagement.return_book(pk)
+        borrowed_book, error= BorrowManagement.return_book(pk)
+        if error:
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = self.get_serializer(borrowed_book)
         return Response(serializer.data)
     
@@ -80,6 +85,23 @@ class AdminMemberViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MemberManagement.get_all_members()
     serializer_class = MemberSerializer
     permission_classes = [IsAdminUser]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        member = MemberManagement.create_member(serializer.validated_data)
+
+        if not member:
+            return Response(
+                {"detail": "Failed to create member"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            MemberSerializer(member).data,
+            status=status.HTTP_201_CREATED
+        )
     
 class AdminBookViewSet(viewsets.ModelViewSet):
     queryset = BookManagement.get_all_books()

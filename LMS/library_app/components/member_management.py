@@ -15,7 +15,7 @@ class MemberManagement:
             return None
         
     @staticmethod
-    def ctrate_member(username, password, phone_number):
+    def create_member(username, password, phone_number):
         user = User.objects.create_user(username=username, password=password)
         member = MemberRepository.create_member(user, phone_number)
         return member
