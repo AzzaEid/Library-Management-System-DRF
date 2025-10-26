@@ -60,11 +60,11 @@ class AdminBorrowedBookViewSet(viewsets.ModelViewSet):
         output_serializer = self.get_serializer(borrowed_book)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
     
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], url_path='return')
     def return_book(self, request, pk=None):
         borrowed_book, error= BorrowManagement.return_book(pk)
         if error:
-            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer(borrowed_book)
         return Response(serializer.data)
@@ -75,7 +75,7 @@ class AdminBorrowedBookViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(overdue_books, many=True)
         return Response(serializer.data)
     
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path = 'not-returned')
     def not_returned(self, request):
         not_returned = BorrowManagement.get_not_returned_books()
         serializer = self.get_serializer(not_returned, many=True)

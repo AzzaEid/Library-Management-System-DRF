@@ -76,3 +76,331 @@ Authorization: Token f9c7f2be9b619c5d74a1e1ff08dce1c58b2a0dc3
 POST http://127.0.0.1:8001/library/return-books/12/
 Authorization: Token f9c7f2be9b619c5d74a1e1ff08dce1c58b2a0dc3
 
+# api_test.http
+# Complete API Testing Scenarios for Library Management System
+# Base URL: http://127.0.0.1:8000
+
+### Variables
+@baseUrl = http://127.0.0.1:8000
+@adminToken = f9c7f2be9b619c5d74a1e1ff08dce1c58b2a0dc3
+@memberToken = 9660319cd9c2f4529102bd4b9c044ee8f2ff4ad7
+
+###############################################################################
+# AUTHENTICATION
+###############################################################################
+
+### 1. Admin Login
+POST {{baseUrl}}/api/v1/login/
+Content-Type: application/json
+
+{
+  "username": "staff",
+  "password": "2test#21"
+}
+
+### 2. Member Login
+POST {{baseUrl}}/api/v1/login/
+Content-Type: application/json
+
+{
+  "username": "member2",
+  "password": "test@1234"
+}
+
+###############################################################################
+# PUBLIC ENDPOINTS (No Authentication Required)
+###############################################################################
+
+### 3. List All Books (Public)
+GET {{baseUrl}}/api/v1/library/books/
+
+### 4. Get Book Details (Public)
+GET {{baseUrl}}/api/v1/library/books/1/
+
+### 5. List All Authors (Public)
+GET {{baseUrl}}/api/v1/library/authors/
+
+### 6. Get Author Details (Public)
+GET {{baseUrl}}/api/v1/library/authors/1/
+
+### 7. Search Books (Public) <<<
+GET {{baseUrl}}/api/v1/library/books/?search=django
+
+###############################################################################
+# MEMBER ENDPOINTS (Require Member Authentication)
+###############################################################################
+
+### 8. Member - View My Borrowed Books
+GET {{baseUrl}}/api/v1/library/member/borrowed-books/
+Authorization: Token {{memberToken}}
+
+### 9. Member - View Specific Borrowed Book
+GET {{baseUrl}}/api/v1/library/member/borrowed-books/1/
+Authorization: Token {{memberToken}}
+
+### 10. Member - View Only Active Borrowed Books
+GET {{baseUrl}}/api/v1/library/member/borrowed-books/active/
+Authorization: Token {{memberToken}}
+
+### 11. Member - Try to Access Admin Endpoint (Should Fail)
+GET {{baseUrl}}/api/v1/library/admin/borrowed-books/
+Authorization: Token {{memberToken}}
+
+
+### Member - View My Profile
+### لاني مستعملة مكسنز بضطر احط id في الرابط حتى لو ما رح استعمله
+GET {{baseUrl}}/api/v1/library/member/profile/3/
+Authorization: Token {{memberToken}}
+
+### admin cannot use this endpoint
+GET {{baseUrl}}/api/v1/library/member/profile/3/
+Authorization: Token {{adminToken}}
+
+### Member - Update My Profile (Full Update)
+PUT {{baseUrl}}/api/v1/library/member/profile/3/
+Authorization: Token {{memberToken}}
+Content-Type: application/json
+
+{
+  "phone_number": "+970599123456"
+}
+
+### Member - Update My Profile (Partial Update)
+PATCH {{baseUrl}}/api/v1/library/member/profile/4/
+Authorization: Token {{memberToken}}
+Content-Type: application/json
+
+{
+  "phone_number": "+970598765432"
+}
+
+### Member - Try to Update Username (Should Fail - Read Only) < هون ما بعطي ايرور
+PATCH {{baseUrl}}/api/v1/library/member/profile/1/
+Authorization: Token {{memberToken}}
+Content-Type: application/json
+
+{
+  "username": "new_username",
+  "phone_number": "+970599999999"
+}
+
+### Member - Update with Invalid Phone Number
+PATCH {{baseUrl}}/api/v1/library/member/profile/766/
+Authorization: Token {{memberToken}}
+Content-Type: application/json
+
+{
+  "phone_number": "123"
+}
+
+### Member - View Profile Without Token (Should Fail) <<<
+GET {{baseUrl}}/api/v1/library/member/profile/
+
+###############################################################################
+# ADMIN - AUTHOR MANAGEMENT
+###############################################################################
+
+### 12. Admin - List All Authors
+GET {{baseUrl}}/api/v1/library/admin/authors/
+Authorization: Token {{adminToken}}
+
+### 13. Admin - Create Author
+POST {{baseUrl}}/api/v1/library/admin/authors/
+Authorization: Token {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Robert C. Martin",
+  "bio": "Software engineer and author of Clean Code"
+}
+
+### 14. Admin - Update Author
+PUT {{baseUrl}}/api/v1/library/admin/authors/1/
+Authorization: Token {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Robert Cecil Martin",
+  "bio": "Uncle Bob - Author of Clean Code and Clean Architecture"
+}
+
+### 15. Admin - Delete Author
+DELETE {{baseUrl}}/api/v1/library/admin/authors/1/
+Authorization: Token {{adminToken}}
+
+###############################################################################
+# ADMIN - BOOK MANAGEMENT
+###############################################################################
+
+### 16. Admin - List All Books
+GET {{baseUrl}}/api/v1/library/admin/books/
+Authorization: Token {{adminToken}}
+
+### 17. Admin - Create Book
+POST {{baseUrl}}/api/v1/library/admin/books/
+Authorization: Token {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Clean Code",
+  "author_id": 5,
+  "isbn": "978-0132350884",
+  "total_copies": 5
+}
+
+### 18. Admin - Update Book
+PUT {{baseUrl}}/api/v1/library/admin/books/6/
+Authorization: Token {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Clean Code: A Handbook of Agile Software Craftsmanship",
+  "author_id": 5,
+  "isbn": "978-0132350884",
+  "total_copies": 10
+}
+
+### 19. Admin - Partial Update Book
+PATCH {{baseUrl}}/api/v1/library/admin/books/6/
+Authorization: Token {{adminToken}}
+Content-Type: application/json
+
+{
+  "total_copies": 15
+}
+
+### 20. Admin - Delete Book (Should fail if borrowed)
+DELETE {{baseUrl}}/api/v1/library/admin/books/6/
+Authorization: Token {{adminToken}}
+
+###############################################################################
+# ADMIN - MEMBER MANAGEMENT
+###############################################################################
+
+### 21. Admin - List All Members
+GET {{baseUrl}}/api/v1/library/admin/members/
+Authorization: Token {{adminToken}}
+
+### 22. Admin - Filter Members by Username <<<
+GET {{baseUrl}}/api/v1/library/admin/members/?membername=john
+Authorization: Token {{adminToken}}
+
+### 23. Admin - Get Member Details
+GET {{baseUrl}}/api/v1/library/admin/members/1/
+Authorization: Token {{adminToken}}
+
+### 24. Admin - View Member's Borrowed Books (Nested Route)
+GET {{baseUrl}}/api/v1/library/admin/members/2/borrowed-books/
+Authorization: Token {{adminToken}}
+
+###############################################################################
+# ADMIN - BORROW MANAGEMENT
+###############################################################################
+
+### 25. Admin - List All Borrowed Books
+GET {{baseUrl}}/api/v1/library/admin/borrowed-books/
+Authorization: Token {{adminToken}}
+
+### 26. Admin - Filter Borrowed Books by Member
+GET {{baseUrl}}/api/v1/admin/borrowed-books/?membername=john
+Authorization: Token {{adminToken}}
+
+### 27. Admin - Order Borrowed Books by Date
+GET {{baseUrl}}/api/v1/admin/borrowed-books/?ordering=-borrowed_date
+Authorization: Token {{adminToken}}
+
+### 28. Admin - Create Borrow Record
+POST {{baseUrl}}/api/v1/library/admin/borrowed-books/
+Authorization: Token {{adminToken}}
+Content-Type: application/json
+
+{
+  "book_id": 9,
+  "member_id": 1,
+  "borrow_period_days": 14
+}
+
+### 29. Admin - Try to Borrow Unavailable Book (Should Fail)
+POST {{baseUrl}}/api/v1/library/admin/borrowed-books/
+Authorization: Token {{adminToken}}
+Content-Type: application/json
+
+{
+  "book_id": 99,
+  "member_id": 2,
+  "borrow_period_days": 14
+}
+
+### 30. Admin - Return Book
+POST {{baseUrl}}/api/v1/library/admin/borrowed-books/1/return/
+Authorization: Token {{adminToken}}
+
+### 31. Admin - Try to Return Already Returned Book (Should Fail)
+POST {{baseUrl}}/api/v1/library/admin/borrowed-books/14/return/
+Authorization: Token {{adminToken}}
+
+### 32. Admin - Get Overdue Books
+GET {{baseUrl}}/api/v1/library/admin/borrowed-books/overdue/
+Authorization: Token {{adminToken}}
+
+### 33. Admin - Get Not Returned Books
+GET {{baseUrl}}/api/v1/library/admin/borrowed-books/not-returned/
+Authorization: Token {{adminToken}}
+
+###############################################################################
+# EDGE CASES & ERROR TESTING
+###############################################################################
+
+### 34. Invalid Token
+GET {{baseUrl}}/api/v1/library/admin/books/
+Authorization: Token invalid_token_12345
+
+### 35. Missing Required Field
+POST {{baseUrl}}/api/v1/library/admin/books/
+Authorization: Token {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Incomplete Book"
+}
+
+### 36. Invalid ID (Not Found)
+GET {{baseUrl}}/api/v1/library/admin/books/99999/
+Authorization: Token {{adminToken}}
+
+### 37. Member Access Admin Endpoint (Forbidden)
+GET {{baseUrl}}/api/v1/library/admin/members/
+Authorization: Token {{memberToken}}
+
+### 38. Borrow Period Exceeds Maximum
+POST {{baseUrl}}/api/v1/library/admin/borrowed-books/
+Authorization: Token {{adminToken}}
+Content-Type: application/json
+
+{
+  "book_id": 1,
+  "member_id": 2,
+  "borrow_period_days": 100
+}
+
+### 39. Pagination Test
+GET {{baseUrl}}/api/v1/library/books/?page=1
+Authorization: Token {{adminToken}}
+
+### 40. Large Page Size
+GET {{baseUrl}}/api/v1/library/books/?page_size=100
+Authorization: Token {{adminToken}}
+
+###############################################################################
+# SWAGGER DOCUMENTATION
+###############################################################################
+
+### 41. View API Documentation
+GET {{baseUrl}}/swagger/
+
+###############################################################################
+# DJANGO ADMIN
+###############################################################################
+
+### 42. Django Admin Login (Browser)
+# Open in browser: {{baseUrl}}/admin/

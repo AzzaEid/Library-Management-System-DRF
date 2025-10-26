@@ -24,7 +24,11 @@ class PublicMemberRegisterView(viewsets.GenericViewSet, mixins.CreateModelMixin)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        member = MemberManagement.create_member(serializer.validated_data)
+        member = MemberManagement.create_member(
+            username=serializer.validated_data['username'],
+        password=serializer.validated_data['password'],
+        phone_number=serializer.validated_data['phone_number']
+        )
 
         if not member:
             return Response(

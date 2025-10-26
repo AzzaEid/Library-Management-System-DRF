@@ -42,7 +42,7 @@ class BorrowManagement:
                 book, member, borrow_period_days
             )
             
-        return borrowed_book
+        return borrowed_book, None
     
     @staticmethod
     def return_book(borrowed_id):

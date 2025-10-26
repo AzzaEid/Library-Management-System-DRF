@@ -12,6 +12,7 @@ class BorrowedBookSerializer(DynamicFieldsModelSerializer):
     is_returned = serializers.BooleanField(read_only=True)
     days_overdue = serializers.IntegerField(read_only=True)
     book_id = serializers.IntegerField()
+    member_id = serializers.IntegerField()  
     borrow_period_days = serializers.IntegerField(
         write_only=True, 
         default=14,

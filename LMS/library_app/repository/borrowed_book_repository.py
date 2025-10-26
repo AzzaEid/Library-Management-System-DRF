@@ -9,7 +9,7 @@ from django.db.models import F
 class BorrowedBookRepository:
     @staticmethod
     def get_all_borrowed():
-        return BorrowedBook.objects.select_related('book__author', 'member__user').all()
+        return BorrowedBook.objects.select_related('book', 'member__user').all()
     
     @staticmethod
     def create_borrow(book, member, period_days):
