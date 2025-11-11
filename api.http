@@ -12,11 +12,10 @@ Content-Type: application/json
 Authorization: Token 9660319cd9c2f4529102bd4b9c044ee8f2ff4ad7
 
 ###
-POST http://127.0.0.1:8001/login/
+POST http://127.0.0.1:8000/login/
 Content-Type: application/json
 
 {
-    "username": "staff",
     "password": "2test#21"
 }
 ###
@@ -103,7 +102,6 @@ POST {{baseUrl}}/api/v1/login/
 Content-Type: application/json
 
 {
-  "username": "member2",
   "password": "test@1234"
 }
 
@@ -112,7 +110,7 @@ Content-Type: application/json
 ###############################################################################
 
 ### 3. List All Books (Public)
-GET {{baseUrl}}/api/v1/library/books/
+GET {{baseUrl}}/api/v1/library/books/?page=1&page_size=1
 
 ### 4. Get Book Details (Public)
 GET {{baseUrl}}/api/v1/library/books/1/
@@ -243,8 +241,8 @@ Content-Type: application/json
 
 {
   "title": "Clean Code",
-  "author_id": 5,
-  "isbn": "978-0132350884",
+  "author_id": 6,
+  "isbn": "938-22022344",
   "total_copies": 5
 }
 

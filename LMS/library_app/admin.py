@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Author, Book, Member, BorrowedBook
+from .models.django_orm import Author, Book, Member, BorrowedBook
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from library_app.models.member import Member
+from LMS.library_app.models.django_orm.member import Member
 from django.contrib.auth.models import User
 
 class MemberSerializer(serializers.ModelSerializer):

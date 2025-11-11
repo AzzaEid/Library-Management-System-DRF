@@ -1,4 +1,4 @@
-from ..models import Author
+from ..models.django_orm import Author
 
 
 class AuthorRepository:

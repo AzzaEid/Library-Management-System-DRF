@@ -1,5 +1,5 @@
 from ..repository import BorrowedBookRepository, BookRepository
-from ..models import BorrowedBook
+from ..models.django_orm import BorrowedBook
 from rest_framework.exceptions import ValidationError
 from django.db import transaction
 from .book_management import BookManagement

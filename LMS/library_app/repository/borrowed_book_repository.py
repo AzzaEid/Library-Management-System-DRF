@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db.models import Q, F
 from django.utils import timezone
 from datetime import timedelta
-from ..models import BorrowedBook
+from ..models.django_orm import BorrowedBook
 from django.db.models import F
 
 

@@ -9,12 +9,19 @@ class PublicBookViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = BookManagement.get_all_books()
     serializer_class = BookSerializer
     permission_classes = [AllowAny]
+    page_size = 10 
+    page_size_query_param = 'page_size'  
+    max_page_size = 100
+
 
 
 class PublicAuthorViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = AuthorManagement.get_all_authors()
     serializer_class = AuthorSerializer
     permission_classes = [AllowAny]
+    page_size = 10 
+    page_size_query_param = 'page_size'  
+    max_page_size = 100
 
 class PublicMemberRegisterView(viewsets.GenericViewSet, mixins.CreateModelMixin):
     serializer_class = MemberSerializer

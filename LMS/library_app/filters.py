@@ -1,5 +1,5 @@
 import django_filters
-from library_app.models import Member, BorrowedBook
+from LMS.library_app.models.django_orm import Member, BorrowedBook
 
 class MemberFilter(django_filters.FilterSet):
     membername = django_filters.CharFilter(field_name='user__username', lookup_expr='icontains')

@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from library_app.models import BorrowedBook
+from LMS.library_app.models.django_orm import BorrowedBook
 from django.db import transaction
 
 class Command(BaseCommand):

@@ -1,5 +1,5 @@
 from django.db.models import Q, Count
-from ..models import Book
+from ..models.django_orm import Book
 from django.db.models import F
 
 

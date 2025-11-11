@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from ..components import BorrowManagement, MemberManagement
 from ..serializers import BorrowedBookSerializer, MemberSerializer
-from ..models import Member
+from ..models.django_orm import Member
 
 class MemberBorrowedBookViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]

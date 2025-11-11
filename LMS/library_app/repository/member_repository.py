@@ -1,5 +1,5 @@
 from django.db.models import Count, Sum, Q
-from ..models import Member
+from ..models.django_orm import Member
 
 
 class MemberRepository:

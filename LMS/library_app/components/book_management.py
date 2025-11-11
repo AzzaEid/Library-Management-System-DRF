@@ -1,4 +1,4 @@
-from ..models.book import Book
+from ..models.django_orm.book import Book
 from ..repository import BookRepository
 
 class BookManagement:
