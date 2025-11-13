@@ -1,4 +1,4 @@
-from LMS.library_app.models.django_orm import Member
+# from LMS.library_app.models.django_orm import Member
 from ..repository import MemberRepository, BorrowedBookRepository
 from django.contrib.auth.models import User
 
