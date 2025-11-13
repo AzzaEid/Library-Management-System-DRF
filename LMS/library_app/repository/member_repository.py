@@ -1,34 +1,53 @@
 from django.db.models import Count, Sum, Q
-from ..models.django_orm import Member
+# from ..models.django_orm import Member
 
+from ..models.sqlalchemy_models import Member
+from ..context.database import Session
+from sqlalchemy import select, update
 
 class MemberRepository:
     
     @staticmethod
-    def get_all_members():
-        return Member.objects.select_related('user').all()
+    def get_all():
+        session = Session()
+        stmt = select(Member)
+        return session.scalars(stmt).all()
     
     @staticmethod
-    def get_member_by_id(id):
-        return Member.objects.select_related('user').get(id=id)
+    def get_by_id(member_id):
+        session = Session()
+        return session.get(Member, member_id)
     
     @staticmethod
-    def get_member_by_username(username):
-        return Member.objects.select_related('user').get(user__username=username)
+    def get_by_username(username):
+        session = Session()
+        stmt = select(Member).where(Member.username == username)
+        return session.scalar(stmt)
     
     @staticmethod
-    def create_member(user, data):
-        return Member.objects.create(user=user, **data)
+    def create(data):
+        session = Session()
+        member = Member(**data)
+        session.add(member)
+        session.commit()
+        session.refresh(member)
+        return member
     
     @staticmethod
     def update_member(member, data):
         for key, value in data.items():
             setattr(member, key, value)
-        member.save()
+        session = Session()
+        session.add(member)
+        session.commit()
+        session.refresh(member)  
         return member
+        
     
     @staticmethod
     def delete_member(member):
-        member.delete()
+        session = Session()
+        session.delete(member)
+        session.commit()
  
     

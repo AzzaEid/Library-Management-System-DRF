@@ -1,60 +1,96 @@
 from django.conf import settings
 from django.db.models import Q, F
 from django.utils import timezone
-from datetime import timedelta
-from ..models.django_orm import BorrowedBook
+from datetime import date, timedelta
+from ..models.sqlalchemy_models import Book, MemberBook
 from django.db.models import F
+from ..context.database import Session
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+from django.conf import settings
 
-
-class BorrowedBookRepository:
+class MemberBookRepository:
     @staticmethod
     def get_all_borrowed():
-        return BorrowedBook.objects.select_related('book', 'member__user').all()
-    
-    @staticmethod
-    def create_borrow(book, member, period_days):
-        borrowed_book = BorrowedBook.objects.create(
-            book=book,
-            member=member,
-            due_date=timezone.now().date() + timedelta(days=period_days),
-            borrowed_date=timezone.now().date()
+        session = Session()
+        stmt = select(MemberBook).options(
+            joinedload(MemberBook.book),
+            joinedload(MemberBook.member)
         )
-        return borrowed_book
+        return session.scalars(stmt).all()
     
     @staticmethod
     def get_by_id(borrowed_id):
-        return BorrowedBook.objects.select_related('book__author', 'member__user').get(id=borrowed_id)
+        session = Session()
+        stmt = select(MemberBook).options(
+            joinedload(MemberBook.book).joinedload(Book.author),
+            joinedload(MemberBook.member)
+        ).where(MemberBook.id == borrowed_id)
+        return session.scalars(stmt)
+    
     
     @staticmethod
-    def return_book(borrowed_book):
-        return_date = timezone.now().date()
-        borrowed_book.returned_date = return_date
+    def create_borrow(book_id, member_id, period_days):
+        session = Session()
+        member_book = MemberBook(
+            book_id=book_id,
+            member_id=member_id,
+            due_date=timezone.now().date() + timedelta(days=period_days),
+            borrowed_date=timezone.now().date()
+        )
+        session.add(member_book)
+        session.commit()
+        session.refresh(member_book)
+        return member_book
+    
 
-        if return_date > borrowed_book.due_date:
-            days_late = (return_date - borrowed_book.due_date).days
-            daily_fee = settings.LIBRARY_SETTINGS['DAILY_LATE_FEE']
-            borrowed_book.late_fee = days_late * daily_fee
-
-        borrowed_book.save()
-        return borrowed_book
+    @staticmethod
+    def return_book(member_book_id):
+        session = Session()
+        member_book = session.get(MemberBook, member_book_id)
+        if member_book:
+            return_date = date.today()
+            member_book.returned_date = return_date
+            
+            if return_date > member_book.due_date:
+                days_late = (return_date - member_book.due_date).days
+                member_book.late_fee = days_late * settings.LATE_FEE_PER_DAY
+            
+            session.commit()
+            session.refresh(member_book)
+        return member_book
     
     @staticmethod
     def get_overdue():
-        today = timezone.now().date()
-        return BorrowedBook.objects.filter(
-            returned_date__isnull=True,  
-            due_date__lt=today
-        ).select_related('book__author', 'member__user')
+        session = Session()
+        today = date.today()
+        stmt = select(MemberBook).options(
+            joinedload(MemberBook.book),
+            joinedload(MemberBook.member)
+        ).where(
+            MemberBook.returned_date.is_(None),
+            MemberBook.due_date < today
+        )
+
+        return session.scalars(stmt).all()
     
     @staticmethod
     def get_not_returned():
-        return BorrowedBook.objects.filter(returned_date__isnull=True).select_related('book__author', 'member__user')
-
-    @staticmethod
-    def get_with_filters(member_id, order_by='borrowed_date'):
-        all = BorrowedBook.objects.select_related('member__user').filter(member_id=member_id)
-        return all.order_by(order_by)
+        session = Session()
+        today = date.today()
+        stmt = select(MemberBook).options(
+            joinedload(MemberBook.book),
+            joinedload(MemberBook.member)
+        ).where(MemberBook.returned_date.is_(None))
+        return session.scalars(stmt).all()
+    
     
     @staticmethod
-    def get_borrowed_by_member(member):
-        return BorrowedBook.objects.select_related('book__author', 'member__user').filter(member_id=member.id)
+    def get_borrowed_by_member(member_id):
+        session = Session()
+        today = date.today()
+        stmt = select(MemberBook).options(
+            joinedload(MemberBook.book),
+            joinedload(MemberBook.member)
+        ).where(MemberBook.member_id == member_id)
+        return session.scalars(stmt).all()

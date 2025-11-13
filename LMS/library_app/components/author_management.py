@@ -1,4 +1,4 @@
-from ..models.django_orm import Author
+# from ..models.django_orm import Author
 from ..repository import AuthorRepository
 
 class AuthorManagement:
@@ -11,7 +11,7 @@ class AuthorManagement:
     def get_author_by_id(author_id):
         try:
             return AuthorRepository.get_author_by_id(author_id=author_id)
-        except Author.DoesNotExist:
+        except :
             return None
     
     @staticmethod
