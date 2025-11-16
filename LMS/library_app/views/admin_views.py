@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from permissions import IsStaff
 from rest_framework.response import Response
 from LMS.library_app.schemas import AuthorSchema, BookSchema, MemberBookCreateSchema, MemberBookSchema, MemberSchema
 from ..components import BorrowManagement, MemberManagement,  BookManagement, AuthorManagement
@@ -8,7 +9,7 @@ from marshmallow import ValidationError
 
 
 class AdminAuthorsController(viewsets.ViewSet):
-    # permission_classes = [IsStaff]
+    permission_classes = [IsStaff]
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

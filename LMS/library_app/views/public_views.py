@@ -10,7 +10,7 @@ from marshmallow import ValidationError
 
 
 class PublicAuthorController(viewsets.ReadOnlyModelViewSet):
-    #permission_classes = [AllowAny]
+    permission_classes = [AllowAny]
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -1,8 +1,9 @@
 from datetime import datetime, date
 from typing import List, Optional
-from sqlalchemy import DECIMAL, Column, Integer, String, DateTime, ForeignKey, Date
+from sqlalchemy import DECIMAL, Boolean, Column, Integer, String, DateTime, ForeignKey, Date
 from sqlalchemy.orm import  DeclarativeBase, relationship, Mapped, mapped_column
-
+from werkzeug.security import generate_password_hash, check_password_hash
+import secrets
 
 class Base(DeclarativeBase):
     __abstract__ = True
@@ -33,7 +34,10 @@ class Book(Base):
     
     # deleted borrowed_copies property to avoid N+1 problem 
     # all calculations moved to repository layer
-
+    @property
+    def available_copies(self):
+        borrowed = sum(1 for mb in self.member_books if mb.returned_date is None)
+        return self.total_copies - borrowed
     def __str__(self):
         return self.title
 
@@ -45,10 +49,32 @@ class Member(Base):
     password: Mapped[str] = mapped_column(String(255))
     phone_number: Mapped[str] = mapped_column(String(20))
     joined_date: Mapped[date] = mapped_column(Date, default=date.today)
-    
+    is_staff: Mapped[bool] = mapped_column(Boolean, default=False)
     member_books: Mapped[List["MemberBook"]] = relationship(back_populates="member", lazy="selectin")
 
+    tokens: Mapped[List["AuthToken"]] = relationship(back_populates="member", lazy="select")
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
+class AuthToken(Base):
+    __tablename__ = 'auth_tokens'
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    member_id: Mapped[int] = mapped_column(ForeignKey('members.id'))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    
+    member: Mapped["Member"] = relationship(back_populates="tokens", lazy="joined")
+    
+    @staticmethod
+    def generate_token():
+        return secrets.token_urlsafe(48)
+    
 class MemberBook(Base):
     __tablename__ = 'member_books'
     
