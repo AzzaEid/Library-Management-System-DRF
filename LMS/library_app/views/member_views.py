@@ -4,9 +4,13 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from LMS.library_app.schemas import MemberBookSchema
+
 from ..components import BorrowManagement, MemberManagement
 from ..serializers import BorrowedBookSerializer, MemberSerializer
 from ..models.django_orm import Member
+from validator import SchemaValidator
+from marshmallow import ValidationError
 
 class MemberBorrowedBookViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -42,7 +46,7 @@ class MemberBorrowedBookViewSet(viewsets.ReadOnlyModelViewSet):
 
         serializer = self.get_serializer(borrowed_books, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
 class MemberProfileViewSet(mixins.RetrieveModelMixin,
                            mixins.UpdateModelMixin,
                            viewsets.GenericViewSet):
