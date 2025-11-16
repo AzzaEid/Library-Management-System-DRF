@@ -16,4 +16,29 @@ class AuthorRepository:
         session = Session()
         stmt = select(Author).options(selectinload(Author.books)).where(Author.id == author_id)
         return session.scalar(stmt)
+    
+    @staticmethod
+    def create(data):
+        session = Session()
+        author = Author(**data)
+        session.add(author)
+        session.commit()
+        session.refresh(author)
+        return author
+        
+    @staticmethod
+    def update(author, data):
+        session = Session()
+        for key, value in data.items():
+            setattr(author, key, value)
+        session.add(author)
+        session.commit()
+        session.refresh(author)
+        return author
+    
+    @staticmethod
+    def delete(author):
+        session = Session()
+        session.delete(author)
+        session.commit()
 

@@ -1,52 +1,45 @@
-from ..repository import BorrowedBookRepository, BookRepository
+from ..repository import BookRepository, MemberRepository, BorrowedBookRepository
 from ..models.django_orm import BorrowedBook
 from rest_framework.exceptions import ValidationError
 from django.db import transaction
 from .book_management import BookManagement
 from .member_management import MemberManagement
+
+
 class BorrowManagement:
+    def __init__(self, **kwargs):
+        self.book_repo = BookRepository()
+        self.member_repo = MemberRepository()
+        self.borrowed_book_repo = BorrowedBookRepository()
+        super().__init__(**kwargs)
+
+    def get_all_borrowed_books(self, filters=None, order_by='borrowed_date'):
+        return self.borrowed_book_repo.get_all(filters, order_by)
     
-    @staticmethod
-    def get_all_borrowed_books():
-        return BorrowedBookRepository.get_all_borrowed()
-    
-    @staticmethod 
-    def get_borrow_by_id(borrow_id):
+    def get_borrow_by_id(self, borrow_id):
         try:
-            return BorrowedBookRepository.get_by_id(borrow_id)
-        except BorrowedBook.DoesNotExist:
+            return self.borrowed_book_repo.get_by_id(borrow_id)
+        except Exception:
             return None
     
-    @staticmethod
-    def borrow_book(book_id, member_id, borrow_period_days=14):
-        book = BookManagement.get_book_by_id(book_id=book_id)
+    def borrow_book(self, book_id, member_id, borrow_period_days=14):
+        book = self.book_repo.get_by_id(book_id)
         if not book:
-            return False, "Book not found"
+            return None, "Book not found"
         
-        member = MemberManagement.get_member_by_id(member_id=member_id)
+        member = self.member_repo.get_by_id(member_id)
         if not member:
-            return False, "Member not found"
-        with transaction.atomic():
-            # Lock the book row for update
-            book = BookRepository.get_book_for_update(book_id)
-            
-            # Check availability
-            if not BookRepository.is_available(book):
-                return False, "No available copies for this book"
-            
-            # Increase borrowed copies
-            BookRepository.increase_borrowed_copies(book)
-            
-            # Create borrow record
-            borrowed_book = BorrowedBookRepository.create_borrow(
-                book, member, borrow_period_days
-            )
-            
-        return borrowed_book, None
+            return None, "Member not found"
+        
+        if not self.book_repo.is_available(book_id):
+            return None, "No available copies for this book"
+        
+        member_book = self.borrowed_book_repo.create_borrow(book_id, member_id, borrow_period_days)
+        return member_book, None
+
     
-    @staticmethod
-    def return_book(borrowed_id):
-        borrowed_book = BorrowManagement.get_borrow_by_id(borrowed_id)
+    def return_book(self, borrowed_id):
+        borrowed_book = self.borrowed_book_repo.get_by_id(borrowed_id)
         
         if not borrowed_book:
             return None, "Borrowed book record not found"
@@ -54,32 +47,17 @@ class BorrowManagement:
         if borrowed_book.is_returned:
             return None, "This book has already been returned"
         
-        with transaction.atomic():
-            # Process return and calculate late fee
-            borrowed_book = BorrowedBookRepository.return_book(borrowed_book)
-            
-            # Decrease borrowed copies
-            BookRepository.decrease_borrowed_copies(borrowed_book.book)
-            
-        return borrowed_book, None
-    
-    @staticmethod
-    def get_overdue_books():
-        return BorrowedBookRepository.get_overdue()
-    
-    @staticmethod
-    def get_not_returned_books():
-        return BorrowedBookRepository.get_not_returned()
-    
-    @staticmethod
-    def get_member_borrowed_books(member, include_returned=True):
+        returned = self.borrowed_book_repo.return_book(borrowed_book)
+        return returned, None
 
-        member = MemberManagement.get_member_by_id(member_id=member.id)
+    def get_overdue_books(self):
+        return self.borrowed_book_repo.get_overdue()
+    
+    def get_not_returned_books(self):
+        return self.borrowed_book_repo.get_not_returned()
+    
+    def get_member_borrowed_books(self, member_id, include_returned=True):
+        member = MemberManagement.get_member_by_id(member_id)
         if not member:
-            raise ValidationError({'member': 'member not found'})
-        
-        borrowed_books = BorrowedBookRepository.get_borrowed_by_member(member)
-        if not include_returned:
-            borrowed_books = borrowed_books.filter(returned_date__isnull=True)
-
-        return borrowed_books
+            return None, "Member not found"
+        return self.borrowed_book_repo.get_by_member(member_id, include_returned), None

@@ -8,9 +8,15 @@ from sqlalchemy import select, update
 class MemberRepository:
     
     @staticmethod
-    def get_all():
+    def get_all(filters=None):
         session = Session()
         stmt = select(Member)
+        if filters:
+            if filters.get('username'):
+                stmt = stmt.where(Member.username.ilike(f"%{filters['username']}%"))
+            if filters.get('phone_number'):
+                stmt = stmt.where(Member.phone_number.ilike(f"%{filters['phone_number']}%"))
+        
         return session.scalars(stmt).all()
     
     @staticmethod

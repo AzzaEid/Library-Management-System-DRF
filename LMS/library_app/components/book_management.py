@@ -1,33 +1,31 @@
 from ..models.django_orm.book import Book
 from ..repository import BookRepository
-
+from rest_framework.exceptions import ValidationError
 class BookManagement:
+    def __init__(self, **kwargs):
+        self.book_repo = BookRepository()
+        super().__init__(**kwargs)
 
-    @staticmethod
-    def get_all_books():
-        return BookRepository.get_all()
+    def get_all_books(self):
+        return self.book_repo.get_all()
     
-    @staticmethod
-    def get_book_by_id(book_id):
+    def get_book_by_id(self, book_id):
         try:
-            return BookRepository.get_by_id(book_id=book_id)
-        except Book.DoesNotExist:
-            return None
+            return self.book_repo.get_by_id(book_id=book_id)
+        except:
+            return ValidationError({'book' : "Doesn't exist"})
     
-    @staticmethod
-    def create_book(data):
-        return BookRepository.create(**data)
+    def create_book(self, data):
+        return self.book_repo.create(**data)
     
-    @staticmethod
-    def update_book(book_id, data):
-        book = BookManagement.get_book_by_id(book_id=book_id)
+    def update_book(self, book_id, data):
+        book = self.book_repo.get_by_id(book_id=book_id)
         if not book:
             return None
-        return BookRepository.update(book, data)
+        return self.book_repo.update(book, data)
     
-    @staticmethod
-    def delete_book(book_id):
-        book = BookManagement.get_book_by_id(book_id)
+    def delete_book(self, book_id):
+        book = self.book_repo.get_by_id(book_id)
         if not book:
             return False, "Book not found"
         # Check if book has active borrows

@@ -1,47 +1,45 @@
 # from LMS.library_app.models.django_orm import Member
 from ..repository import MemberRepository, BorrowedBookRepository
 from django.contrib.auth.models import User
-
+from rest_framework.exceptions import ValidationError
 class MemberManagement:
-    @staticmethod
-    def get_all_members():
-        return MemberRepository.get_all_members()
-    
-    @staticmethod
-    def get_member_by_id(member_id):
-        try:
-            return MemberRepository.get_member_by_id(member_id)
-        except Member.DoesNotExist:
-            return None
+    def __init__(self, **kwargs):
+        self.member_repo = MemberRepository()
+        super().__init__(**kwargs)
         
-    @staticmethod
-    def create_member(username, password, phone_number):
+    def get_all_members(self, filters=None):
+        return self.member_repo.get_all(filters=None)
+    
+    def get_member_by_id(self, member_id):
+        try:
+            return self.member_repo.get_by_id(member_id)
+        except :
+            raise ValidationError({'member':"Doesn't exist"})
+    
+
+    def create_member(self, username, password, phone_number):
         user = User.objects.create_user(username=username, password=password)
-        member = MemberRepository.create_member(user, phone_number)
+        member = self.member_repo.create(user, phone_number)
         return member
     
-    @staticmethod
-    def update_member(member_id, data):
-        member = MemberManagement.get_member_by_id(member_id=member_id)
+    def update_member(self, member_id, data):
+        member = self.get_member_by_id(member_id=member_id)
         if not member:
             return None
         
-        return MemberRepository.update_member(member, data)
+        return self.member_repo.update_member(member, data)
     
-    @staticmethod
-    def delete_member(member_id):
-        member = MemberManagement.get_member_by_id(member_id=member_id)
-        return MemberRepository.delete_member(member)
+    def delete_member(self, member_id):
+        member = self.get_member_by_id(member_id=member_id)
+        return self.member_repo.delete_member(member)
     
-    @staticmethod
-    def get_member_from_user(user):
+    def get_member_from_user(self, user):
         try:
             return user.member
-        except (Member.DoesNotExist, AttributeError):
-            return None
-    
-    @staticmethod
-    def get_member_borrowed_books(member):
+        except :
+            raise ValidationError({'member':"Doesn't exist"})
+        
+    def get_member_borrowed_books(self, member):
         borrowed_books = BorrowedBookRepository.get_borrowed_by_member(member)
         total_late_fees = sum(
             book.late_fee for book in borrowed_books if book.late_fee
