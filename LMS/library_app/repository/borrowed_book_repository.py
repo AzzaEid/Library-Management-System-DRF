@@ -2,22 +2,36 @@ from django.conf import settings
 from django.db.models import Q, F
 from django.utils import timezone
 from datetime import date, timedelta
-from ..models.sqlalchemy_models import Book, MemberBook
+from ..models.sqlalchemy_models import Book, Member, MemberBook
 from django.db.models import F
 from ..context.database import Session
-from sqlalchemy import select
+from sqlalchemy import asc, desc, select
 from sqlalchemy.orm import joinedload
 from django.conf import settings
 
 class MemberBookRepository:
     @staticmethod
-    def get_all_borrowed():
+    def get_all(filters=None, order_by='borrowed_date'):
         session = Session()
         stmt = select(MemberBook).options(
             joinedload(MemberBook.book),
             joinedload(MemberBook.member)
         )
-        return session.scalars(stmt).all()
+        
+        if filters:
+            if filters.get('member_username'):
+                stmt = stmt.join(Member).where(Member.username.ilike(f"%{filters['member_username']}%"))
+        
+        if order_by == '-borrowed_date':
+            stmt = stmt.order_by(desc(MemberBook.borrowed_date))
+        elif order_by == 'borrowed_date':
+            stmt = stmt.order_by(asc(MemberBook.borrowed_date))
+        elif order_by == '-due_date':
+            stmt = stmt.order_by(desc(MemberBook.due_date))
+        elif order_by == 'due_date':
+            stmt = stmt.order_by(asc(MemberBook.due_date))
+        
+        return session.scalars(stmt).unique().all()
     
     @staticmethod
     def get_by_id(borrowed_id):
@@ -26,7 +40,7 @@ class MemberBookRepository:
             joinedload(MemberBook.book).joinedload(Book.author),
             joinedload(MemberBook.member)
         ).where(MemberBook.id == borrowed_id)
-        return session.scalars(stmt)
+        return session.scalars(stmt).first()
     
     
     @staticmethod
@@ -94,3 +108,17 @@ class MemberBookRepository:
             joinedload(MemberBook.member)
         ).where(MemberBook.member_id == member_id)
         return session.scalars(stmt).all()
+    
+    
+    @staticmethod
+    def get_by_member(member_id, include_returned=True):
+        session = Session()
+        stmt = select(MemberBook).options(
+            joinedload(MemberBook.book).joinedload(Book.author),
+            joinedload(MemberBook.member)
+        ).where(MemberBook.member_id == member_id)
+        
+        if not include_returned:
+            stmt = stmt.where(MemberBook.returned_date.is_(None))
+        
+        return session.scalars(stmt).unique().all()

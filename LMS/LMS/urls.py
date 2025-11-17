@@ -19,6 +19,8 @@ from django.shortcuts import redirect
 from django.urls import include, path
 from rest_framework.authtoken.views import obtain_auth_token
 from .swagger_view import schema_view
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
@@ -28,4 +30,6 @@ urlpatterns = [
     path('api/v1/library/member/', include('library_app.urls.member_urls')),
     
     path('api/v1/library/admin/', include('library_app.urls.admin_urls')), 
+    path('api/v1/library/auth/', include('library_app.urls.auth_urls')), 
+
 ]

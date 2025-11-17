@@ -1,37 +1,36 @@
 # from ..models.django_orm import Author
 from ..repository import AuthorRepository
-
+from rest_framework.exceptions import ValidationError
 class AuthorManagement:
+    def __init__(self, **kwargs):
+        self.auther_repo = AuthorRepository()
+        super().__init__(**kwargs)
+        
+        
+    def get_all_authors(self):
+        return self.auther_repo.get_all_authors()
+    
+    def get_author_by_id(self, author_id):
+        author = self.auther_repo.get_author_by_id(author_id=author_id)
+        if not author:
+            raise ValidationError({"author": f"Author with id {author_id} does not exist"})
+        return author
 
-    @staticmethod
-    def get_all_authors():
-        return AuthorRepository.get_all_authors()
+    def create_author(self, data):
+        return self.auther_repo.create(data)
     
-    @staticmethod
-    def get_author_by_id(author_id):
-        try:
-            return AuthorRepository.get_author_by_id(author_id=author_id)
-        except :
-            return None
-    
-    @staticmethod
-    def create_author(data):
-        return AuthorRepository.create_author(**data)
-    
-    @staticmethod
-    def update_author(author_id, data):
-        author = AuthorManagement.get_author_by_id(author_id)
+    def update_author(self, author_id, data):
+        author = self.auther_repo.get_author_by_id(author_id)
         if not author:
             return None
-        author = AuthorRepository.update_author(author, data)
+        author = self.auther_repo.update(author, data)
         return author
     
-    @staticmethod
-    def delete_author(author_id):
-        author = AuthorManagement.get_author_by_id(author_id)
+    def delete_author(self,author_id):
+        author = self.get_author_by_id(author_id)
         if not author:
             return False
-        AuthorRepository.delete_author(author)
+        self.auther_repo.delete(author)
         return True
     
     

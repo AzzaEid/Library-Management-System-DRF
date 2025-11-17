@@ -1,7 +1,7 @@
 from django.conf import settings
 from rest_framework import serializers
 from .dynamic_fields_model_serializer import DynamicFieldsModelSerializer
-from ..models.django_orm import BorrowedBook
+from ..models.django_orm.borrowedBook import BorrowedBook
 from .book_serializer import BookSerializer
 from .member_serializer import MemberSerializer
 

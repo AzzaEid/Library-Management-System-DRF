@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from LMS.library_app.models.django_orm.author import Author
-from LMS.library_app.models.django_orm.book import Book
+from ..models.django_orm.author import Author
+from ..models.django_orm.book import Book
 
 class BookSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField() # <== just the author's name
