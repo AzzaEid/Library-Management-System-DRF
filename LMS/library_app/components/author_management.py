@@ -10,14 +10,14 @@ class AuthorManagement:
     def get_all_authors(self):
         return self.auther_repo.get_all_authors()
     
-    def get_author_by_id(self,author_id):
-        try:
-            return self.auther_repo.get_author_by_id(author_id=author_id)
-        except :
-            raise ValidationError({"auther": "auther with id doesn't exist"})
-    
+    def get_author_by_id(self, author_id):
+        author = self.auther_repo.get_author_by_id(author_id=author_id)
+        if not author:
+            raise ValidationError({"author": f"Author with id {author_id} does not exist"})
+        return author
+
     def create_author(self, data):
-        return self.auther_repo.create(**data)
+        return self.auther_repo.create(data)
     
     def update_author(self, author_id, data):
         author = self.auther_repo.get_author_by_id(author_id)

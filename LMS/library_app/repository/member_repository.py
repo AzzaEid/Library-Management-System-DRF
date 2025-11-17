@@ -31,9 +31,10 @@ class MemberRepository:
         return session.scalar(stmt)
     
     @staticmethod
-    def create(data):
+    def create(username, password, phone_number, is_staff=False):
         session = Session()
-        member = Member(**data)
+        member = Member(username=username, phone_number=phone_number, is_staff=is_staff)
+        member.set_password(password)
         session.add(member)
         session.commit()
         session.refresh(member)

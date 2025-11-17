@@ -26,9 +26,8 @@ class BookRepository:
         return session.scalar(stmt)
     
     @staticmethod
-    def create(data):
+    def create(book):
         session = Session()
-        book = Book(**data)
         session.add(book)
         session.commit()
         session.refresh(book)

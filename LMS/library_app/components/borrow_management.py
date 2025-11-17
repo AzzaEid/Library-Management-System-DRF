@@ -1,5 +1,5 @@
 from ..repository import BookRepository, MemberRepository, BorrowedBookRepository
-from ..models.django_orm import BorrowedBook
+# from ..models.django_orm import BorrowedBook
 from rest_framework.exceptions import ValidationError
 from django.db import transaction
 from .book_management import BookManagement
@@ -11,6 +11,7 @@ class BorrowManagement:
         self.book_repo = BookRepository()
         self.member_repo = MemberRepository()
         self.borrowed_book_repo = BorrowedBookRepository()
+        self.member_management=MemberManagement()
         super().__init__(**kwargs)
 
     def get_all_borrowed_books(self, filters=None, order_by='borrowed_date'):
@@ -44,10 +45,10 @@ class BorrowManagement:
         if not borrowed_book:
             return None, "Borrowed book record not found"
         
-        if borrowed_book.is_returned:
+        if borrowed_book.returned_date is not None:
             return None, "This book has already been returned"
-        
-        returned = self.borrowed_book_repo.return_book(borrowed_book)
+
+        returned = self.borrowed_book_repo.return_book(borrowed_book.id)
         return returned, None
 
     def get_overdue_books(self):
@@ -57,7 +58,7 @@ class BorrowManagement:
         return self.borrowed_book_repo.get_not_returned()
     
     def get_member_borrowed_books(self, member_id, include_returned=True):
-        member = MemberManagement.get_member_by_id(member_id)
+        member = self.member_management.get_member_by_id(member_id)
         if not member:
             return None, "Member not found"
         return self.borrowed_book_repo.get_by_member(member_id, include_returned), None

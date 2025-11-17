@@ -20,22 +20,23 @@ class AuthorRepository:
     @staticmethod
     def create(data):
         session = Session()
-        author = Author(**data)
-        session.add(author)
+        # author = Author(**data)
+        session.add(data)
         session.commit()
-        session.refresh(author)
-        return author
+        session.refresh(data)
+        return data
         
+   
     @staticmethod
-    def update(author, data):
+    def update(author: Author, new_author: Author):
         session = Session()
-        for key, value in data.items():
-            setattr(author, key, value)
+        author.name = new_author.name
+        author.bio = new_author.bio
         session.add(author)
         session.commit()
         session.refresh(author)
         return author
-    
+
     @staticmethod
     def delete(author):
         session = Session()

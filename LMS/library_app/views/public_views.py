@@ -4,8 +4,8 @@ from ..components import MemberManagement
 from rest_framework import viewsets, status, mixins
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from schemas import  AuthorSchema, BookSchema
-from validator import SchemaValidator
+from ..schemas import  AuthorSchema, BookSchema
+from ..validator import SchemaValidator
 from marshmallow import ValidationError
 
 

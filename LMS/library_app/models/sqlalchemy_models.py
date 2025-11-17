@@ -30,7 +30,7 @@ class Book(Base):
     total_copies : Mapped[int] = mapped_column(Integer, default=1)
     
     author : Mapped['Author'] = relationship("Author", back_populates="books")
-    borrowed_books : Mapped[List['MemberBook']] = relationship("MemberBook", back_populates="book")
+    member_books : Mapped[List['MemberBook']] = relationship("MemberBook", back_populates="book")
     
     # deleted borrowed_copies property to avoid N+1 problem 
     # all calculations moved to repository layer
@@ -46,7 +46,7 @@ class Member(Base):
     __tablename__ = 'members'
     
     username: Mapped[str] = mapped_column(String(150), unique=True)
-    password: Mapped[str] = mapped_column(String(255))
+    password_hash: Mapped[str] = mapped_column(String(255))
     phone_number: Mapped[str] = mapped_column(String(20))
     joined_date: Mapped[date] = mapped_column(Date, default=date.today)
     is_staff: Mapped[bool] = mapped_column(Boolean, default=False)

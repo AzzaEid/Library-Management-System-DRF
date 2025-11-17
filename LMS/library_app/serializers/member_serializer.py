@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from LMS.library_app.models.django_orm.member import Member
-from django.contrib.auth.models import User
+from ..models.django_orm.member import Member
 
 class MemberSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.username', read_only=True)

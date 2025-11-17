@@ -1,10 +1,10 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from permissions import IsStaff
+from ..permissions import IsStaff
 from rest_framework.response import Response
-from LMS.library_app.schemas import AuthorSchema, BookSchema, MemberBookCreateSchema, MemberBookSchema, MemberSchema
+from ..schemas import AuthorSchema, BookSchema, MemberBookCreateSchema, MemberBookSchema, MemberSchema
 from ..components import BorrowManagement, MemberManagement,  BookManagement, AuthorManagement
-from validator import SchemaValidator
+from ..validator import SchemaValidator
 from marshmallow import ValidationError
 
 
@@ -45,6 +45,9 @@ class AdminAuthorsController(viewsets.ViewSet):
         except ValidationError as e:
             return Response({'error': e.messages}, status=status.HTTP_400_BAD_REQUEST)
     
+    # def partial_update(self, request, pk=None):
+    #     return self.update(request, pk=pk)
+
     def delete(self, request, pk=None):
         success = self.author_component.delete_author(pk)
         if not success:
@@ -53,7 +56,7 @@ class AdminAuthorsController(viewsets.ViewSet):
     
 
 class AdminBooksController(viewsets.ViewSet):
-    # permission_classes = [IsStaff]
+    permission_classes = [IsStaff]
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -147,7 +150,7 @@ class AdminMembersController(viewsets.ViewSet):
             return Response({'error': 'Member not found'}, status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)
     
-    @action(detail=True, methods=['GET'], url_path='members/(?P<pk>[^/.]+)/borrowed-books')
+    @action(detail=True, methods=['GET'], url_path='borrowed-books')
     def member_borrowed_books(self, request, pk=None):
         borrowed_books, total_late_fees = self.member_component.get_member_borrowed_books(pk)
         return Response({

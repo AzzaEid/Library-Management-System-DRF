@@ -40,7 +40,7 @@ class MemberBookRepository:
             joinedload(MemberBook.book).joinedload(Book.author),
             joinedload(MemberBook.member)
         ).where(MemberBook.id == borrowed_id)
-        return session.scalars(stmt)
+        return session.scalars(stmt).first()
     
     
     @staticmethod

@@ -17,10 +17,8 @@ class MemberManagement:
             raise ValidationError({'member':"Doesn't exist"})
     
 
-    def create_member(self, username, password, phone_number):
-        user = User.objects.create_user(username=username, password=password)
-        member = self.member_repo.create(user, phone_number)
-        return member
+    def create_member(self, username, password, phone_number, is_staff=False):
+        return self.member_repo.create(username, password, phone_number, is_staff)
     
     def update_member(self, member_id, data):
         member = self.get_member_by_id(member_id=member_id)
@@ -39,8 +37,8 @@ class MemberManagement:
         except :
             raise ValidationError({'member':"Doesn't exist"})
         
-    def get_member_borrowed_books(self, member):
-        borrowed_books = BorrowedBookRepository.get_borrowed_by_member(member)
+    def get_member_borrowed_books(self, member_id):
+        borrowed_books = BorrowedBookRepository.get_borrowed_by_member(member_id)
         total_late_fees = sum(
             book.late_fee for book in borrowed_books if book.late_fee
         )

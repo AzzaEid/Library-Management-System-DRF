@@ -1,4 +1,4 @@
-from database import engine
+from .database import engine
 from ..models.sqlalchemy_models import Base
 
 def init_database():

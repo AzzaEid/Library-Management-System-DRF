@@ -1,4 +1,4 @@
-'''
+
 from django.utils import timezone
 from django.db import models
 from .book import Book
@@ -30,4 +30,3 @@ class BorrowedBook(models.Model):
     
     def __str__(self):
         return f"{self.book.title} borrowed by {self.member.user.username}"
-'''
